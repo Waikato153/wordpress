@@ -1,0 +1,53 @@
+version: '3'
+
+networks:
+  wordpress:
+    driver: bridge
+
+services:
+
+  nginx:
+    container_name: wordpress-nginx
+    image: nginx:latest
+    restart: always
+    depends_on:
+      - "php"
+    volumes:
+      - ../server:/wordpress/server
+      - ./config/nginx/conf.d:/etc/nginx/conf.d
+      - ./log/nginx/logs:/logs
+    networks:
+      - wordpress
+    ports:
+      - "80:80"
+
+  php:
+    container_name: wordpress-php
+    image: myapp/php
+    restart: always
+    working_dir: /wordpress/server
+    volumes:
+      - ../server:/wordpress/server
+      - ./config/php/php.ini:/usr/local/etc/php/php.ini
+    networks:
+      - wordpress
+    ports:
+      - "9000:9000"
+    #user: "1000:1000"
+
+
+
+  mysql:
+    container_name: wordpress-mysql
+    #image: mysql:5.7.29 #X86架构
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    restart: always
+    volumes:
+      - ./data/mysql/lib:/var/lib/mysql
+      - ./config/mysql/mysqld.cnf:/etc/mysql/my.cnf
+    networks:
+      - wordpress
+    ports:
+      - "3306:3306"
